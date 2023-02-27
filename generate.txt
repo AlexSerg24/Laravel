@@ -1,0 +1,140 @@
+CREATE TABLE `laravel_api`.`emploees` (`id` BIGINT(20) NOT NULL AUTO_INCREMENT , `post_id` INT(1) NOT NULL , `first_name` VARCHAR(20) NOT NULL , `last_name` VARCHAR(20) NOT NULL , `part_name` VARCHAR(20) NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+
+CREATE TABLE `laravel_api`.`posts` (`id` BIGINT(20) NOT NULL AUTO_INCREMENT , `post_name` VARCHAR(35) NOT NULL , `auto_category` VARCHAR(20) NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+
+CREATE TABLE `laravel_api`.`autos` (`id` BIGINT(20) NOT NULL AUTO_INCREMENT , `driver_id` BIGINT(20) NOT NULL , `category` INT(1) NOT NULL , `model` VARCHAR(20) NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+
+CREATE TABLE `laravel_api`.`bookings` (`id` BIGINT(20) NOT NULL AUTO_INCREMENT , `auto_id` BIGINT(20) NOT NULL , `emploee_id` BIGINT(20) NOT NULL , `booking_from` DATETIME NOT NULL , `booking_to` DATETIME NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+
+ALTER TABLE `emploees` ADD FOREIGN KEY (`post_id`) REFERENCES `posts`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE `autos` ADD FOREIGN KEY (`driver_id`) REFERENCES `emploees`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE `bookings` ADD FOREIGN KEY (`auto_id`) REFERENCES `autos`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE `bookings` ADD FOREIGN KEY (`emploee_id`) REFERENCES `emploees`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+INSERT INTO `posts`(`post_name`, `auto_category`) VALUES ('Водитель','1,2,3');
+INSERT INTO `posts`(`post_name`, `auto_category`) VALUES ('Директор','1');
+INSERT INTO `posts`(`post_name`, `auto_category`) VALUES ('Бухгалтер','2');
+INSERT INTO `posts`(`post_name`, `auto_category`) VALUES ('Frontend разработчик','3');
+INSERT INTO `posts`(`post_name`, `auto_category`) VALUES ('Backend разработчик','3');
+INSERT INTO `posts`(`post_name`, `auto_category`) VALUES ('Специалист по информационной безопасности','2');
+
+DELIMITER $$
+CREATE PROCEDURE `InsertEmploee`(IN `post_id` BIGINT(20))
+BEGIN 
+    DECLARE fm varchar(256); DECLARE im varchar(256); DECLARE om varchar(256); DECLARE fn varchar(256); DECLARE ln varchar(50); DECLARE pn varchar(50); 
+    SET fm = 'Иванов,Петров,Сидоров,Комаров,Смирнов,Сергеев,Никитин,Абрамов,Ильин,Лавров,Зеленин'; 
+    SET im = 'Кирилл,Евгений,Семен,Роман,Петр,Василий,Алексей,Виталий,Денис,Михаил,Александр'; 
+    SET om = 'Петрович,Анатольевич,Дмитриевич,Иванович,Сергеевич,Павлович,Ильич,Михайлович,Владиславович,Георгевич,Аркадиевич'; 
+    SET fn = SUBSTRING_INDEX((select SUBSTRING_INDEX(fm, ',', FLOOR(RAND()*11)+1) order BY RAND() LIMIT 1),',',-1); 
+    SET ln = SUBSTRING_INDEX((select SUBSTRING_INDEX(im, ',', FLOOR(RAND()*11)+1) order BY RAND() LIMIT 1),',',-1); 
+    SET pn = SUBSTRING_INDEX((select SUBSTRING_INDEX(om, ',', FLOOR(RAND()*11)+1) order BY RAND() LIMIT 1),',',-1); 
+    INSERT INTO emploees(post_id, first_name, last_name, part_name) VALUES(post_id, fn, ln, pn); 
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE LoadDrivers(num INT)
+BEGIN
+    DECLARE counter INT DEFAULT 1;
+    WHILE counter <= num DO
+        CALL InsertEmploee(1);
+        SET counter = counter + 1;
+    END WHILE;
+END$$
+DELIMITER ;
+
+CALL LoadDrivers(30);
+CALL InsertEmploee(2);
+CALL InsertEmploee(3);
+CALL InsertEmploee(3);
+
+DELIMITER $$
+CREATE PROCEDURE LoadFront(num INT)
+BEGIN
+    DECLARE counter INT DEFAULT 1;
+    WHILE counter <= num DO
+        CALL InsertEmploee(4);
+        SET counter = counter + 1;
+    END WHILE;
+END$$
+DELIMITER ;
+
+CALL LoadFront(5);
+
+DELIMITER $$
+CREATE PROCEDURE LoadBack(num INT)
+BEGIN
+    DECLARE counter INT DEFAULT 1;
+    WHILE counter <= num DO
+        CALL InsertEmploee(5);
+        SET counter = counter + 1;
+    END WHILE;
+END$$
+DELIMITER ;
+
+CALL LoadBack(5);
+CALL InsertEmploee(6);
+CALL InsertEmploee(6);
+
+DELIMITER $$
+CREATE PROCEDURE `InsertAuto`(IN `id` BIGINT(20))
+BEGIN 
+    DECLARE models varchar(256); DECLARE m varchar(256); DECLARE ctgr int(1);
+    SET models = 'Audi,Ford,Honda,Kia,Lada,Mazda,Hyundai,Renault,Nissan,Toyota,Volkswagen'; 
+    SET m = SUBSTRING_INDEX((select SUBSTRING_INDEX(models, ',', FLOOR(RAND()*11)+1) order BY RAND() LIMIT 1),',',-1);
+    SET ctgr = FLOOR(RAND()*3)+1;
+    INSERT INTO autos(driver_id, category, model) VALUES(id, ctgr, m);
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE LoadAuto()
+BEGIN
+	DECLARE driver_id BIGINT(20);
+    SET driver_id = (SELECT id FROM emploees WHERE post_id = 1 LIMIT 1);
+    WHILE EXISTS(SELECT id FROM emploees WHERE post_id = 1 and id = driver_id) DO
+        CALL InsertAuto(driver_id);
+        SET driver_id = driver_id + 1;
+    END WHILE;
+END$$
+DELIMITER ;
+
+CALL LoadAuto();
+
+DELIMITER $$
+CREATE PROCEDURE `InsertBooking`(IN `auto` BIGINT(20), IN `from_date` DATETIME , IN `to_date` DATETIME)
+BEGIN 
+    DECLARE emploee BIGINT(20);
+    SET emploee = (SELECT id FROM emploees WHERE post_id != 1 ORDER BY RAND() LIMIT 1);
+    INSERT INTO bookings(auto_id, emploee_id, booking_from, booking_to) VALUES(auto, emploee, from_date, to_date);
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE LoadBooking()
+BEGIN
+	DECLARE min_date DATETIME DEFAULT '2023-01-30 14:00:00'; DECLARE max_date DATETIME DEFAULT '2023-03-15 14:00:00'; DECLARE auto BIGINT(20); DECLARE cur_max_date DATETIME; DECLARE cur_min_date DATETIME;
+    DECLARE from_date DATETIME; DECLARE to_date DATETIME; DECLARE rnd INT(1); DECLARE counter INT DEFAULT 1;
+    SET auto = (SELECT id FROM autos LIMIT 1);
+    WHILE EXISTS(SELECT id FROM autos WHERE id = auto) DO
+    	SET counter = 1;
+    	SET rnd = FLOOR(RAND()*3);
+        SET cur_min_date = '2023-01-30 14:00:00';
+        WHILE counter <= rnd DO
+        	SET cur_max_date = (SELECT TIMESTAMPADD(SECOND, TIMESTAMPDIFF(SECOND, min_date, max_date)*counter / rnd, min_date));
+            SET from_date = (SELECT TIMESTAMPADD(SECOND, FLOOR(RAND() * TIMESTAMPDIFF(SECOND, cur_min_date, cur_max_date)), cur_min_date));
+            SET to_date = (SELECT TIMESTAMPADD(SECOND, FLOOR(RAND() * TIMESTAMPDIFF(SECOND, from_date, cur_max_date)), from_date));
+            CALL InsertBooking(auto, from_date, to_date);
+            SET counter = counter + 1;
+            SET cur_min_date = to_date;
+        END WHILE;
+        SET auto = auto + 1;
+    END WHILE;
+END$$
+DELIMITER ;
+
+CALL LoadBooking();
