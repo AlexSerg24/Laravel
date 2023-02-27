@@ -1,0 +1,53 @@
+<?php
+
+namespace App\Filters\V1;
+use illuminate\Http\Request;
+use App\Filters\ApiFilter;
+
+class BookingFilter extends ApiFilter{
+
+    protected $safeParams = [
+        'id' => ['eq'],
+        'autoId' => ['eq'],
+        'emploeeId' => ['eq'],
+        'bookingFrom' => ['eq', 'gt', 'lt'],
+        'bookingTo' => ['eq', 'gt', 'lt']
+    ];
+
+    protected $columnMap = [
+        'autoId' => 'auto_id',
+        'emploeeId' => 'emploee_id',
+        'bookingFrom' => 'booking_from',
+        'bookingTo' => 'booking_to'
+    ];
+
+    protected $operatorMap = [
+        'eq' => '=',
+        'lt' => '<',
+        'lte' => '≤',
+        'gt' => '>',
+        'gte' => '≥'
+    ];
+
+    public function transform(Request $request) {
+        $eloQuery = [];
+
+        foreach ($this->safeParams as $param => $operators) {
+            $query = $request->query($param);
+
+            if (!isset($query)) {
+                continue;
+            }
+
+            $column = $this->columnMap[$param] ?? $param;
+
+            foreach ($operators as $operator) {
+                if (isset($query[$operator])) {
+                    $eloQuery[] = [$column, $this->operatorMapp[$operator], $query[$operator]];
+                }
+            }
+        }
+
+        return $eloQuery;
+    }
+}
