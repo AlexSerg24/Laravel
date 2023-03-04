@@ -62,61 +62,38 @@
                     data:{'post_id':postId},
                     success:function(data){
                         //console.log(data);
-                        var autoCategory = data.posts[0]['auto_category'];
-                        //console.log(autoCategory);
-                        $.ajax({
-                            url:"{{ route('filter_auto') }}",
-                            type:"GET",
-                            data:{'auto_category':autoCategory},
-                            success:function(data){
-                                var autosArray = data.autos;
-                                var html = '';
-                                if (autosArray.length > 0) {
-                                    //console.log(autosArray);
-                                    Array.prototype.forEach.call(autosArray, function(auto){
-                                        $.ajax({
-                                            url:"{{ route('filter_booking') }}",
-                                            type:"GET",
-                                            data:{'auto_id':auto['id']},
-                                            success:function(data){
-                                                //console.log(data);
-                                                var bookings = data.bookings;
-                                                if(bookings.length > 0) {
-                                                    for (var i = 0; i<bookings.length; i++){
-                                                        html += '<tr>\
-                                                                <td>'+auto['id']+'</td>\
-                                                                <td>'+auto['category']+'</td>\
-                                                                <td>'+auto['model']+'</td>\
-                                                                <td>'+bookings[i]['booking_from']+'</td>\
-                                                                <td>'+bookings[i]['booking_to']+'</td>\
-                                                                </tr>';
-                                                        $("#tbody").html(html);
-                                                    }
-                                                }
-                                                else {
-                                                    html += '<tr>\
-                                                            <td>'+auto['id']+'</td>\
-                                                            <td>'+auto['category']+'</td>\
-                                                            <td>'+auto['model']+'</td>\
-                                                            <td>'+'--'+'</td>\
-                                                            <td>'+'--'+'</td>\
-                                                            </tr>';
-                                                    $("#tbody").html(html);
-                                                }
-                                            }
-                                        })
-                                    })
-                                }
-                                else{
+                        var bookings = data.output;
+                        var html = '';
+                        if (bookings.length > 0 ) {
+                            for (var i = 0; i<bookings.length; i++){
+                                if (bookings[i]['booking_from']) {
                                     html += '<tr>\
-                                            <td>No avaliable autos</td>\
+                                            <td>'+bookings[i]['id']+'</td>\
+                                            <td>'+bookings[i]['category']+'</td>\
+                                            <td>'+bookings[i]['model']+'</td>\
+                                            <td>'+bookings[i]['booking_from'] +'</td>\
+                                            <td>'+bookings[i]['booking_to'] +'</td>\
                                             </tr>';
-                                    $("#tbody").html(html);        
+                                    $("#tbody").html(html);
                                 }
-
-                                
+                                else {
+                                    html += '<tr>\
+                                            <td>'+bookings[i]['id']+'</td>\
+                                            <td>'+bookings[i]['category']+'</td>\
+                                            <td>'+bookings[i]['model']+'</td>\
+                                            <td>'+'--'+'</td>\
+                                            <td>'+'--'+'</td>\
+                                            </tr>';
+                                    $("#tbody").html(html);
+                                }
                             }
-                        })
+                        }
+                        else{
+                            html += '<tr>\
+                                    <td>No avaliable autos</td>\
+                                    </tr>';
+                            $("#tbody").html(html);        
+                        }
                     }
                 })
             })

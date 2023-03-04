@@ -9,6 +9,7 @@ use App\Emploee;
 use App\Post;
 use Carbon\Carbon;
 use Carbon\Traits\Date;
+use DB;
 
 class BookingControllerV2 extends Controller
 {
@@ -22,12 +23,24 @@ class BookingControllerV2 extends Controller
 
         if($request->ajax()){
             if (empty($request->post_id)){
-                $post = $query->get();
+                $output = $query->get();
             }
-            else {
-                $post = $query->where(['id'=>$request->post_id])->get();
+            else {               
+                $output = DB::table('emploees')
+                ->join('posts', function($join){
+                    $join->on('emploees.post_id', '=', 'posts.id');
+                })
+                ->join('autos', function ($join) {
+                    $join->on('posts.auto_category', '=', 'autos.category');
+                })
+                ->leftJoin('bookings', function ($join) {
+                    $join->on('autos.id', '=', 'bookings.auto_id');
+                })
+                ->select('autos.id', 'autos.category', 'autos.model', 'bookings.booking_from', 'bookings.booking_to')
+                ->where(['emploees.id'=>$request->post_id])->get();
+                //$post = $query->where(['id'=>$request->post_id])->get();
             }           
-            return response()->json(['posts'=>$post]);
+            return response()->json(['output'=>$output]);
         }
 
         return view('booking', compact('bookings', 'autos', 'emploees', 'posts'));
