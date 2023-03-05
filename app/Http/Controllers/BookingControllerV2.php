@@ -9,6 +9,7 @@ use App\Emploee;
 use App\Post;
 use Carbon\Carbon;
 use Carbon\Traits\Date;
+use Validator;
 use DB;
 
 class BookingControllerV2 extends Controller
@@ -48,4 +49,26 @@ class BookingControllerV2 extends Controller
         return view('booking', compact('bookings', 'autos', 'emploees', 'posts'));
     }
 
+    public function addBooking(Request $request){
+        $data = Validator::make($request->all(), [
+            'auto_id' => 'required',
+            'emploee_id' => 'required',
+            'booking_from' => 'required',
+            'booking_to' => 'required'
+        ]);
+        if ($data->passes()){
+
+            $booking = new Bookig();
+            $booking->auto_id = $request->auto_id;
+            $booking->emploee_id = $request->emploee_id;
+            $booking->booking_from = $request->booking_from;
+            $booking->booking_to = $request->booking_to;
+
+            $booking->save();
+            return response()->json(['success'=>'added']);
+        }
+        //$project = Booking::create($data);
+
+        return response()->json(['error'=>$data->error]);
+    }
 }

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>Booking Search</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
@@ -18,16 +19,23 @@
                     <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <label for="date1" class="lead text-dark m-0">Specify the period of auto booking</label>
-                    <input type="datetime-local" name="date1" id="date1" class="form-select my-2 border rounded-pill">
-                    <input type="datetime-local" name="date2" id="date2" class="form-select my-2 border rounded-pill">
+                    <h5 class="text-dark m-0">You choosed:</h5>
+                    <p id="auto-name" class="text-success m-0 fs-3"></p>
+                    <h5 for="date1" class="text-dark m-1">Specify the period of auto booking</h5>
+                    <p class="text-danger m-0 visually-hidden" id="empty-dates-error">Some date is empty!</p>
+                    <p class="lead m-0">Choose start date</p>
+                    <input type="datetime-local" name="date1" id="date1" class="form-select my-2 border rounded-pill" required>
+                    <span class="validity"></span>
+                    <p class="lead m-0">Choose end date</p>
+                    <input type="datetime-local" name="date2" id="date2" class="form-select my-2 border rounded-pill" required>
+                    <span class="validity"></span>
                 </div>
                 <div class="modal-footer">
                     <div class="d-flex flex-row justify-content-center">
-                        <button class="my-2 mx-1 rounded-pill border border-2 border-dark px-2 py-1 fs-5 bg-success">
+                        <button class="my-2 mx-1 rounded-pill border border-2 border-dark px-2 py-1 fs-5 bg-success" id="confirm">
                             Confirm
                         </button>
-                        <button class="my-2 mx-1 rounded-pill border border-2 border-dark px-2 py-1 fs-5 bg-danger">
+                        <button class="my-2 mx-1 rounded-pill border border-2 border-dark px-2 py-1 fs-5 bg-danger" type="button" data-bs-dismiss="modal">
                             Cancel
                         </button>
                     </div>                   
@@ -86,6 +94,7 @@
     </main>
     <script>
         $(document).ready(function(){
+            var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
             $("#emploee-select").on('change',function(){
                 var postId = $(this).val();
                 var auto_select = document.getElementById("auto-select");
@@ -161,9 +170,54 @@
                 var autoId = $(this).val();
                 if (autoId!=""){
                     document.getElementById("btn-book").classList.remove("visually-hidden");
+                    document.getElementById("auto-name").innerHTML = document.getElementById("auto-select").selectedOptions[0].innerHTML;
                 }
                 else{
                     document.getElementById("btn-book").classList.add("visually-hidden");
+                }
+            })
+            $("#confirm").on('click',function(){
+                var date1 = document.getElementById("date1").value;
+                var date2 = document.getElementById("date2").value
+                if (date1!="" && date2!=""){
+                    var a_id = document.getElementById("auto-select").selectedOptions[0].value;
+                    var e_id = document.getElementById("emploee-select").selectedOptions[0].value;
+                    var d1 = document.getElementById("date1").value;
+                    var d2 = document.getElementById("date2").value;
+                    d1 = d1.replace('T', ' ') + ':00';
+                    d2 = d2.replace('T', ' ') + ':00';
+                    console.log(d1,d2);
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+
+                    $.ajax({
+                        url:'add_booking', //{{ route('add_booking')}}
+                        type:"POST",
+                        data:{_token: CSRF_TOKEN, 'auto_id':a_id, 'emploee_id':e_id, 'booking_from':d1, 'booking_to':d2}, //
+                        dataType: 'JSON',
+                        success:function(data){
+                            console.log(data);
+                        },
+                        error: function(data){
+                            console.log(data);
+                        }
+                    })
+                }
+                else {
+                    document.getElementById("empty-dates-error").classList.remove("visually-hidden");
+                }               
+            })
+            $("#date1").on('change',function(){
+                if(!document.getElementById("empty-dates-error").classList.contains("visually-hidden")){
+                    document.getElementById("empty-dates-error").classList.add("visually-hidden");
+                }
+            })
+            $("#date2").on('change',function(){
+                if(!document.getElementById("empty-dates-error").classList.contains("visually-hidden")){
+                    document.getElementById("empty-dates-error").classList.add("visually-hidden");
                 }
             })
         })

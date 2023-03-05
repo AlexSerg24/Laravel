@@ -21,5 +21,6 @@ Route::get('/', function () {
 });
 
 Route::get('filter', [BookingControllerV2::class, 'filterBooking'])->name('filter');
-Route::get('filter_auto', [AutoControllerV2::class, 'filterAuto'])->name('filter_auto');
-Route::get('filter_booking', [EmploeeBookingControllerV2::class, 'filterEmploeeBooking'])->name('filter_booking');
+//Route::get('filter_auto', [AutoControllerV2::class, 'filterAuto'])->name('filter_auto');
+//Route::get('filter_booking', [EmploeeBookingControllerV2::class, 'filterEmploeeBooking'])->name('filter_booking');
+Route::post('add_booking', [BookingControllerV2::class, 'addBooking'])->name('add_booking');

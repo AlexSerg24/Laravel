@@ -12,13 +12,15 @@
     
     <div class="w-full md:w-9/12 mx-auto mt-10">
         <div class="mb-2">
-            <h1 class="text-slate-900 text-3xl">Livewire Filters</h1>
+            <h1 class="text-slate-900 text-3xl">Auto booking</h1>
         </div>
         <div class="mb-2 flex justify-end">
 
         </div>
         <div class="mb-2">
-            
+            <button href="filter">
+                Go to task
+            </button>
         </div>
     </div>
 
