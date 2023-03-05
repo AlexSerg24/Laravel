@@ -23,13 +23,15 @@ class BookingControllerV2 extends Controller
 
         if($request->ajax()){
             if (empty($request->post_id)){
-                $output = $query->get();
+                $output = DB::table('bookings')
+                ->join('autos', function ($join) {
+                    $join->on('autos.id', '=', 'bookings.auto_id');
+                })
+                ->select('autos.id', 'autos.category', 'autos.model', 'bookings.booking_from', 'bookings.booking_to')
+                ->get();
             }
             else {               
-                $output = DB::table('emploees')
-                ->join('posts', function($join){
-                    $join->on('emploees.post_id', '=', 'posts.id');
-                })
+                $output = DB::table('posts')
                 ->join('autos', function ($join) {
                     $join->on('posts.auto_category', '=', 'autos.category');
                 })
@@ -37,7 +39,7 @@ class BookingControllerV2 extends Controller
                     $join->on('autos.id', '=', 'bookings.auto_id');
                 })
                 ->select('autos.id', 'autos.category', 'autos.model', 'bookings.booking_from', 'bookings.booking_to')
-                ->where(['emploees.id'=>$request->post_id])->get();
+                ->where(['posts.id'=>$request->post_id])->get();
                 //$post = $query->where(['id'=>$request->post_id])->get();
             }           
             return response()->json(['output'=>$output]);
