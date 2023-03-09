@@ -56,9 +56,10 @@ class BookingControllerV2 extends Controller
             'booking_from' => 'required',
             'booking_to' => 'required'
         ]);
+
         if ($data->passes()){
 
-            $booking = new Bookig();
+            $booking = new Booking();
             $booking->auto_id = $request->auto_id;
             $booking->emploee_id = $request->emploee_id;
             $booking->booking_from = $request->booking_from;

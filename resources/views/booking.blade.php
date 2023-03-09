@@ -35,7 +35,7 @@
                         <button class="my-2 mx-1 rounded-pill border border-2 border-dark px-2 py-1 fs-5 bg-success" id="confirm">
                             Confirm
                         </button>
-                        <button class="my-2 mx-1 rounded-pill border border-2 border-dark px-2 py-1 fs-5 bg-danger" type="button" data-bs-dismiss="modal">
+                        <button class="my-2 mx-1 rounded-pill border border-2 border-dark px-2 py-1 fs-5 bg-danger" type="button" data-bs-dismiss="modal" id="btn-cancel">
                             Cancel
                         </button>
                     </div>                   
@@ -186,7 +186,7 @@
                     var d2 = document.getElementById("date2").value;
                     d1 = d1.replace('T', ' ') + ':00';
                     d2 = d2.replace('T', ' ') + ':00';
-                    console.log(d1,d2);
+                    //console.log(d1,d2);
                     $.ajaxSetup({
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -194,12 +194,23 @@
                     });
 
                     $.ajax({
-                        url:'add_booking', //{{ route('add_booking')}}
+                        url:'/add_booking', //{{ route('add_booking')}}
                         type:"POST",
                         data:{_token: CSRF_TOKEN, 'auto_id':a_id, 'emploee_id':e_id, 'booking_from':d1, 'booking_to':d2}, //
                         dataType: 'JSON',
                         success:function(data){
-                            console.log(data);
+                            //console.log(data);
+                            document.getElementById("date1").value = "";
+                            document.getElementById("date2").value = "";
+                            var success_msg = document.createElement("p");
+                            success_msg.setAttribute("class", "text-success m-0 fs-3");
+                            success_msg.innerHTML = "You have successfully booked this car";
+                            document.getElementById("date2").parentNode.insertBefore(success_msg, document.getElementById("date2").nextElementSibling);
+                            function hide(){
+                                $('#modal-book').modal('hide');
+                            }
+                            setTimeout(hide, 2000);
+
                         },
                         error: function(data){
                             console.log(data);
