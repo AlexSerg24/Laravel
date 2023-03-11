@@ -1,0 +1,20 @@
+.moving {
+    animation: mv 3s infinite linear;
+}
+@keyframes mv {
+    0% {
+        transform: scaleX(1);
+    }
+    40% {
+        transform: translateX(150px);
+    }
+    50% {
+        transform: scaleX(-1) translateX(-150px);
+    }
+    90% {
+        transform: translateX(0px) scaleX(-1);
+    }
+    100% {
+        transform: scaleX(1);
+    }
+  }
